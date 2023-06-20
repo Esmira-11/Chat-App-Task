@@ -1,116 +1,193 @@
 import {
-    Grid,
-    Paper,
-    Typography,
-    TextField,
-    Button,
-    Alert,
+  Grid,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  AlertTitle,
+  Link,
+  Box,
+  Container,
   } from "@mui/material";
-  import { useFormik } from "formik";
-  import { paperStyle } from "./AuthStyles";
-  import { singUpValidations } from "./validations";
+  import { ErrorMessage, Field, Form, Formik  } from "formik";
   import { useState } from "react";
-  
+  import axios from 'axios';
+ import * as Yup from "yup";
+ import { useNavigate } from "react-router-dom";
 
   export const RegisterPage = () => {
-    //use Formik
-    const [user, setuser] = useState('')
 
-    const { handleSubmit, handleChange, touched, values, errors } = useFormik({
-      initialValues: {
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      },
-      validationSchema: singUpValidations,
-      onSubmit: ({ username, email, password }, bag) => {
-        // e.preventDefault()
-      //   let newUser = {
-      //     id: Math.floor(Math.random() * 1000),
-      //     user: todos,
-      //     status: true
-      // }
-      // dispatch(addToDo(newTodo))
-      // settodos('')
-      },
+    const [errorMessage, setErrorMessage] = useState("");
+    const [emailExistsError, setEmailExistsError] = useState(false);
+
+    const navigate = useNavigate();
+
+    const initialValues = {
+      userName: "",
+      email: "",
+      password: "",
+    };
+  
+    const validationSchema = Yup.object().shape({
+      userName: Yup.string().required("First Name is required"),
+      email: Yup.string().email("Invalid email").required("Email is required"),
+      password: Yup.string().required("Password is required"),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password"), null], "Passwords must match")
+        .required("Confirm Password is required"),
     });
+
+    const handleSubmit = async (values, { setSubmitting }) => {
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/user/register",
+          values
+        );
+        console.log(response.data);
+        navigate("/confirm", { state: response.data.email });
+        setSubmitting(false);
+      } catch (error) {
+        if (error.response.status === 409) {
+          if (error.response.data.msg) {
+            setEmailExistsError(true);
+            setErrorMessage(error.response.data.msg);
+            console.log(error.response.data.msg);
+          }
+        } else {
+          console.error(error);
+        }
+        setSubmitting(false);
+      }
+    };
   
     return (
-        <Grid>
-        <Paper elevation={20} style={paperStyle}>
-          <Grid textAlign="center" marginBottom={2}>
-            <Typography variant="h5" fontWeight="bold">
-              Sign Up
-            </Typography>
-            <Typography variant="caption">
-              Please fill this from to create an account!
-            </Typography>
-          </Grid>
-          <Grid>
-            {errors.general && <Alert severity="error">{errors.general}</Alert>}
-          </Grid>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              name="username"
-              label="Username"
-              variant="standard"
-              placeholder="Enter you username"
-              onChange={handleChange}
-              value={values.username}
-              error={touched.username && Boolean(errors.username)}
-              helperText={touched.username && errors.username}
-            />
-            <TextField
-              fullWidth
-              name="email"
-              label="Email"
-              variant="standard"
-              placeholder="Enter you email"
-              onChange={handleChange}
-              value={values.email}
-              error={touched.email && Boolean(errors.email)}
-              helperText={touched.email && errors.email}
-            />
-            <TextField
-              fullWidth
-              type="password"
-              name="password"
-              label="Password"
-              variant="standard"
-              placeholder="Enter you password"
-              onChange={handleChange}
-              value={values.password}
-              error={touched.password && Boolean(errors.password)}
-              helperText={touched.password && errors.password}
-            />
-            <TextField
-              type="password"
-              name="confirmPassword"
-              fullWidth
-              label="Confirm Password"
-              variant="standard"
-              placeholder="Enter you comfirm password"
-              onChange={handleChange}
-              value={values.confirmPassword}
-              error={touched.confirmPassword && Boolean(errors.confirmPassword)}
-              helperText={touched.confirmPassword && errors.confirmPassword}
-            />
-            <Grid marginTop={3}>
+      <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          boxShadow: 3,
+          borderRadius: 2,
+          px: 4,
+          py: 6,
+          marginTop: 8,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography mb={1} component="h1" variant="h5">
+          Sign Up
+        </Typography>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form noValidate>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    autoComplete="uname"
+                    name="userName"
+                    required
+                    fullWidth
+                    id="userName"
+                    label="User Name"
+                  />
+                  <ErrorMessage
+                    component="div"
+                    name="userName"
+                    className="error-message"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    autoComplete="email"
+                    name="email"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                  />
+                  <ErrorMessage
+                    component="div"
+                    name="email"
+                    className="error-message"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    autoComplete="new-password"
+                    name="password"
+                    required
+                    fullWidth
+                    id="password"
+                    label="Password"
+                    type="password"
+                  />
+                  <ErrorMessage
+                    component="div"
+                    name="password"
+                    className="error-message"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Field
+                    as={TextField}
+                    autoComplete="new-password"
+                    name="confirmPassword"
+                    required
+                    fullWidth
+                    id="confirmPassword"
+                    label="Confirm Password"
+                    type="password"
+                  />
+                  <ErrorMessage
+                    component="div"
+                    name="confirmPassword"
+                    className="error-message"
+                  />
+                </Grid>
+              </Grid>
               <Button
-                fullWidth
-                textAlign="center"
                 type="submit"
+                fullWidth
                 variant="contained"
-                color="primary"
+                disabled={isSubmitting}
+                sx={{ mt: 3, mb: 2 }}
               >
                 Sign Up
               </Button>
-            </Grid>
-          </form>
-        </Paper>
-      </Grid>
+              <Grid container justifyContent="flex-end">
+                <Grid item>
+                  <Link
+                    style={{
+                      fontFamily:
+                        ' "Roboto","Helvetica","Arial",sans-serif',
+                      textDecorationColor: "rgba(25, 118, 210, 0.4)",
+                      color: "rgba(25, 118, 210, 0.4)",
+                    }}
+                    to="/"
+                  >
+                    Already have an account? Sign in
+                  </Link>
+                </Grid>
+              </Grid>
+            </Form>
+          )}
+        </Formik>
+
+        {emailExistsError && (
+          <Alert severity="error" onClose={() => setEmailExistsError(false)} sx={{ mt: 2 }}>
+            <AlertTitle>Error</AlertTitle>
+            {errorMessage} 
+          </Alert>
+        )}
+      </Box>
+    </Container>
     );
   };
   

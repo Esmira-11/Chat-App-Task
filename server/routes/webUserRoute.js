@@ -1,7 +1,7 @@
-const expres = require('express');
+const express = require('express');
 const { webUserController } = require('../controllers/webUserController');
 
-const webUserRoutes = expres.Router();
+const webUserRoutes = express.Router();
 
 webUserRoutes.post('/register', webUserController.register)
 webUserRoutes.post('/confirm', webUserController.confirm)

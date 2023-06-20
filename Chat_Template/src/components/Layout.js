@@ -10,6 +10,8 @@ import {
 import { CatchingPokemon } from "@mui/icons-material";
 
 export const Layout = () => {
+  
+  const token = localStorage.getItem("token")
   return (
     <>
       <AppBar position="static">
@@ -53,6 +55,19 @@ export const Layout = () => {
                 Sign Up
               </Button>
             </>
+            :
+            <Button
+          
+            variant="outlined"
+            color="inherit"
+            onClick={()=>{
+              localStorage.clear();
+              window.location.reload()
+            }}
+          >
+            Sign Out
+          </Button>
+          
           </Stack>
         </Toolbar>
       </AppBar>

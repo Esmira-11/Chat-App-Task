@@ -8,17 +8,35 @@ import {
   } from "@mui/material";
   import { useFormik } from "formik";
   import { paperStyle } from "./AuthStyles";
-  import { singInValidations } from "./validations";
-  
+  import {validation } from "./validation/validation";
+
+  import axios from "axios";
+  import { useNavigate } from "react-router-dom";
+
   export const LoginPage = () => {
-    //use Formik
+
+    const navigate = useNavigate();
     const { handleSubmit, handleChange, touched, values, errors } = useFormik({
       initialValues: {
         email: "",
         password: "",
       },
-      validationSchema: singInValidations,
-      onSubmit: ({ email, password }, bag) => {
+      validationSchema: validation,
+      onSubmit: (values) => {
+        try {
+          axios.post(
+            "http://localhost:5000/api/user/login",
+            values
+          ).then(res=>{
+            
+            navigate("/confirm", { state: res.data.email });
+          })
+        
+        } catch (error){
+          console.log(error)
+        }
+      
+
       },
     });
     return (
